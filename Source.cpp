@@ -7,7 +7,6 @@
 #pragma comment(lib, "ws2_32.lib")
 #define _CRT_SECURE_NO_WARNINGS
 #define OPENCV_TRAITS_ENABLE_DEPRECATED
-#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 
 using namespace std;
 namespace stdfs = std::filesystem;
