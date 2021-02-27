@@ -164,11 +164,11 @@ vector<vector<vector<cv::Point>>> volume(
 				cv::Mat cnt_mask2 = cv::Mat::zeros(h, w, CV_8UC1);
 				cv::Mat intersection = cv::Mat::zeros(h, w, CV_8UC1);
 				cv::drawContours(cnt_mask1, vector<vector<cv::Point>>(1, correct_contours[i + 1][k]), -1, (255, 255, 255), -1);
-				cv::imshow("mask1", cnt_mask1);
+				//cv::imshow("mask1", cnt_mask1);
 				cv::drawContours(cnt_mask2, vector<vector<cv::Point>>(1, correct_contours[i][j_]), -1, (255, 255, 255), -1);
-				cv::imshow("mask2", cnt_mask2);
+				//cv::imshow("mask2", cnt_mask2);
 				cv::bitwise_and(cnt_mask1, cnt_mask2, intersection);
-				cv::imshow("mask", intersection);
+				//cv::imshow("mask", intersection);
 				cv::findContours(intersection, intersection_cnt, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
 
 				if (!intersection_cnt.empty() and aneurism_size(correct_contours[i + 1][k]) >= aneurism_size(correct_contours[i][j_]) and i-1 > 0)
