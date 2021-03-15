@@ -12,7 +12,7 @@ using namespace std;
 namespace stdfs = std::filesystem;
 
 
-float aneurism_size(vector<cv::Point> cnt)
+float aneurism_size(vector<cv::Point> cnt) //max measure of contour
 {
 	cv::Point2f center;
 	float radius;
@@ -41,9 +41,6 @@ cv::Mat prepare_image(string file)
 			if (pixelData != NULL)
 			{
 				dst = cv::Mat(nHeight, nWidth, CV_8UC3, pixelData);
-				/*imshow("image2", dst);
-				cv::waitKey(0);
-				system("pause");*/
 			}
 		}
 		else
@@ -61,15 +58,15 @@ tuple<vector<vector<vector<cv::Point>>>, vector<vector<vector<cv::Point>>>> comp
 	cv::Mat dst;
 	cv::Mat img;
 	cv::Mat mask1;
-	vector<vector<cv::Point>> suspected_contours;
+	vector<vector<cv::Point>> suspected_contours; //intermediate storage
 	vector<vector<cv::Point>>::iterator contour;
-	vector<vector<cv::Point>> contours;
+	vector<vector<cv::Point>> contours; //intermediate storage
 	cv::Mat mask2;
 	cv::Mat mask3;
 	cv::Mat mask;
 	cv::Mat kernel;
-	vector<vector<vector<cv::Point>>> all_contours;
-	vector<vector<vector<cv::Point>>> correct_contours;
+	vector<vector<vector<cv::Point>>> all_contours; //all contours including elongate and small objects
+	vector<vector<vector<cv::Point>>> correct_contours; //contours with size >= 7mm
 	float h, w;
 
 	for (stdfs::directory_iterator iter{ path }; iter != end; ++iter)
@@ -119,7 +116,8 @@ tuple<vector<vector<vector<cv::Point>>>, vector<vector<vector<cv::Point>>>> comp
 		for (size_t j = 0; j < contours.size(); j++)
 		{
 			all_contours[i].push_back(contours[j]);
-			if (contours[j].size() >= 3 and aneurism_size(contours[j]) >= 7. * 1.5 /*and cv::contourArea(contours[i]) > 80*/ and cv::contourArea(contours[j]) < 1500)
+			if (contours[j].size() >= 3 and aneurism_size(contours[j]) >= 7. * 1.5 /*and cv::contourArea(contours[i]) > 80*/
+				and cv::contourArea(contours[j]) < 1500)
 			{
 				minRect[j] = minAreaRect(contours[j]);
 				if (minRect[j].size.width > minRect[j].size.height)
@@ -145,7 +143,7 @@ tuple<vector<vector<vector<cv::Point>>>, vector<vector<vector<cv::Point>>>> comp
 vector<vector<vector<cv::Point>>> volume(
 	vector<vector<vector<cv::Point>>> aneurism_biggest_sections,
 	vector<vector<vector<cv::Point>>> correct_contours,
-	int i, int max_i, int w, int h)
+	int i, int max_i, int w, int h) //find biggest slices of each artery of aneurism
 {
 	const int cnt_number = i;
 	for (int j=0; j < correct_contours[i].size(); j++)
@@ -164,11 +162,8 @@ vector<vector<vector<cv::Point>>> volume(
 				cv::Mat cnt_mask2 = cv::Mat::zeros(h, w, CV_8UC1);
 				cv::Mat intersection = cv::Mat::zeros(h, w, CV_8UC1);
 				cv::drawContours(cnt_mask1, vector<vector<cv::Point>>(1, correct_contours[i + 1][k]), -1, (255, 255, 255), -1);
-				//cv::imshow("mask1", cnt_mask1);
 				cv::drawContours(cnt_mask2, vector<vector<cv::Point>>(1, correct_contours[i][j_]), -1, (255, 255, 255), -1);
-				//cv::imshow("mask2", cnt_mask2);
 				cv::bitwise_and(cnt_mask1, cnt_mask2, intersection);
-				//cv::imshow("mask", intersection);
 				cv::findContours(intersection, intersection_cnt, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
 
 				if (!intersection_cnt.empty() and aneurism_size(correct_contours[i + 1][k]) >= aneurism_size(correct_contours[i][j_]) and i-1 > 0)
@@ -221,7 +216,7 @@ int main(int argc, char** argv)
 
 		cv::drawContours(dst, correct_contours[i], -1, cv::Scalar(0, 255, 0), 1);
 		for (int j = 0; j < aneurism_biggest_sections[i].size(); j++)
-			if (aneurism_size(aneurism_biggest_sections[i][j]) >= 7. * 1.5)
+			if (aneurism_size(aneurism_biggest_sections[i][j]) >= 7. * 1.5) //biggest slices with size >= 7
 				cv::drawContours(dst, vector<vector<cv::Point>>(1, aneurism_biggest_sections[i][j]), -1, cv::Scalar(0, 0, 255), 1);
 		cv::imshow("suspected", dst);
 
